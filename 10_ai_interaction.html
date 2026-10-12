@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>AI Interaction and Validation</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="10_ai_interaction_files/libs/clipboard/clipboard.min.js"></script>
+<script src="10_ai_interaction_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="10_ai_interaction_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="10_ai_interaction_files/libs/quarto-html/popper.min.js"></script>
+<script src="10_ai_interaction_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="10_ai_interaction_files/libs/quarto-html/anchor.min.js"></script>
+<link href="10_ai_interaction_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="10_ai_interaction_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="10_ai_interaction_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="10_ai_interaction_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="10_ai_interaction_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#ai-interaction-and-validation" id="toc-ai-interaction-and-validation" class="nav-link active" data-scroll-target="#ai-interaction-and-validation"><span class="header-section-number">1</span> AI Interaction and Validation</a>
+  <ul class="collapse">
+  <li><a href="#improving-the-project-structure" id="toc-improving-the-project-structure" class="nav-link" data-scroll-target="#improving-the-project-structure"><span class="header-section-number">1.1</span> 1. Improving the Project Structure</a>
+  <ul class="collapse">
+  <li><a href="#initial-prompt" id="toc-initial-prompt" class="nav-link" data-scroll-target="#initial-prompt"><span class="header-section-number">1.1.1</span> Initial prompt</a></li>
+  <li><a href="#problem-identified" id="toc-problem-identified" class="nav-link" data-scroll-target="#problem-identified"><span class="header-section-number">1.1.2</span> Problem identified</a></li>
+  <li><a href="#improved-prompt" id="toc-improved-prompt" class="nav-link" data-scroll-target="#improved-prompt"><span class="header-section-number">1.1.3</span> Improved prompt</a></li>
+  <li><a href="#result" id="toc-result" class="nav-link" data-scroll-target="#result"><span class="header-section-number">1.1.4</span> Result</a></li>
+  </ul></li>
+  <li><a href="#correcting-quarto-code-formatting" id="toc-correcting-quarto-code-formatting" class="nav-link" data-scroll-target="#correcting-quarto-code-formatting"><span class="header-section-number">1.2</span> 2. Correcting Quarto Code Formatting</a>
+  <ul class="collapse">
+  <li><a href="#initial-problem" id="toc-initial-problem" class="nav-link" data-scroll-target="#initial-problem"><span class="header-section-number">1.2.1</span> Initial problem</a></li>
+  <li><a href="#re-prompt" id="toc-re-prompt" class="nav-link" data-scroll-target="#re-prompt"><span class="header-section-number">1.2.2</span> Re-prompt</a></li>
+  <li><a href="#validation" id="toc-validation" class="nav-link" data-scroll-target="#validation"><span class="header-section-number">1.2.3</span> Validation</a></li>
+  </ul></li>
+  <li><a href="#correcting-the-cauchy-histogram" id="toc-correcting-the-cauchy-histogram" class="nav-link" data-scroll-target="#correcting-the-cauchy-histogram"><span class="header-section-number">1.3</span> 3. Correcting the Cauchy Histogram</a>
+  <ul class="collapse">
+  <li><a href="#problem-identified-1" id="toc-problem-identified-1" class="nav-link" data-scroll-target="#problem-identified-1"><span class="header-section-number">1.3.1</span> Problem identified</a></li>
+  <li><a href="#re-prompt-1" id="toc-re-prompt-1" class="nav-link" data-scroll-target="#re-prompt-1"><span class="header-section-number">1.3.2</span> Re-prompt</a></li>
+  <li><a href="#improved-approach" id="toc-improved-approach" class="nav-link" data-scroll-target="#improved-approach"><span class="header-section-number">1.3.3</span> Improved approach</a></li>
+  <li><a href="#validation-1" id="toc-validation-1" class="nav-link" data-scroll-target="#validation-1"><span class="header-section-number">1.3.4</span> Validation</a></li>
+  <li><a href="#final-conclusion" id="toc-final-conclusion" class="nav-link" data-scroll-target="#final-conclusion"><span class="header-section-number">1.3.5</span> Final conclusion</a></li>
+  </ul></li>
+  <li><a href="#checking-the-extra-credit-models" id="toc-checking-the-extra-credit-models" class="nav-link" data-scroll-target="#checking-the-extra-credit-models"><span class="header-section-number">1.4</span> 4. Checking the Extra-Credit Models</a>
+  <ul class="collapse">
+  <li><a href="#problem-identified-2" id="toc-problem-identified-2" class="nav-link" data-scroll-target="#problem-identified-2"><span class="header-section-number">1.4.1</span> Problem identified</a></li>
+  <li><a href="#re-prompt-2" id="toc-re-prompt-2" class="nav-link" data-scroll-target="#re-prompt-2"><span class="header-section-number">1.4.2</span> Re-prompt</a></li>
+  <li><a href="#validation-2" id="toc-validation-2" class="nav-link" data-scroll-target="#validation-2"><span class="header-section-number">1.4.3</span> Validation</a></li>
+  </ul></li>
+  <li><a href="#final-validation-process" id="toc-final-validation-process" class="nav-link" data-scroll-target="#final-validation-process"><span class="header-section-number">1.5</span> 7. Final Validation Process</a></li>
+  <li><a href="#reflection" id="toc-reflection" class="nav-link" data-scroll-target="#reflection"><span class="header-section-number">1.6</span> 8. Reflection</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">AI Interaction and Validation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="ai-interaction-and-validation" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> AI Interaction and Validation</h1>
+<p>I used AI as a programming and statistical reasoning assistant. I did not accept the generated code or conclusions without checking them in RStudio. I rendered the Quarto files, examined the graphs, and reviewed the numerical output.</p>
+<section id="improving-the-project-structure" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="improving-the-project-structure"><span class="header-section-number">1.1</span> 1. Improving the Project Structure</h2>
+<section id="initial-prompt" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="initial-prompt"><span class="header-section-number">1.1.1</span> Initial prompt</h3>
+<p>I asked AI to help me understand the project requirements and organize the Quarto document.</p>
+</section>
+<section id="problem-identified" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="problem-identified"><span class="header-section-number">1.1.2</span> Problem identified</h3>
+<p>The first response provided too much of the project at once. This made it difficult for me to understand the individual steps and analyze the results myself.</p>
+</section>
+<section id="improved-prompt" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="improved-prompt"><span class="header-section-number">1.1.3</span> Improved prompt</h3>
+<p>I asked AI to slow down and work section by section. I specifically requested that it explain the purpose of each section and provide only the code needed for the current step.</p>
+</section>
+<section id="result" class="level3" data-number="1.1.4">
+<h3 data-number="1.1.4" class="anchored" data-anchor-id="result"><span class="header-section-number">1.1.4</span> Result</h3>
+<p>The project was reorganized into repeated sections for each population:</p>
+<ol type="1">
+<li>Population description</li>
+<li>Prediction before the simulation</li>
+<li>Simulation design</li>
+<li>Simulation function</li>
+<li>Simulation results</li>
+<li>Selection of (n)</li>
+<li>Evidence for the selection</li>
+<li>Surprising result</li>
+<li>Conclusion</li>
+</ol>
+<p>This structure made it easier to compare the populations consistently.</p>
+</section>
+</section>
+<section id="correcting-quarto-code-formatting" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="correcting-quarto-code-formatting"><span class="header-section-number">1.2</span> 2. Correcting Quarto Code Formatting</h2>
+<section id="initial-problem" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="initial-problem"><span class="header-section-number">1.2.1</span> Initial problem</h3>
+<p>Some code was displayed incorrectly after copying it into the document. The R code chunks did not render properly because the Quarto code fences were not formatted correctly.</p>
+</section>
+<section id="re-prompt" class="level3" data-number="1.2.2">
+<h3 data-number="1.2.2" class="anchored" data-anchor-id="re-prompt"><span class="header-section-number">1.2.2</span> Re-prompt</h3>
+<p>I asked AI to provide code in a copy-and-paste format with properly formatted Quarto R chunks. Each chunk needed an opening <code>{r}</code> label, R code inside the chunk, and a closing code fence.</p>
+</section>
+<section id="validation" class="level3" data-number="1.2.3">
+<h3 data-number="1.2.3" class="anchored" data-anchor-id="validation"><span class="header-section-number">1.2.3</span> Validation</h3>
+<p>I pasted the revised code into RStudio and rendered the document. The code chunks and their outputs displayed correctly after the formatting was corrected.</p>
+</section>
+</section>
+<section id="correcting-the-cauchy-histogram" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="correcting-the-cauchy-histogram"><span class="header-section-number">1.3</span> 3. Correcting the Cauchy Histogram</h2>
+<section id="problem-identified-1" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="problem-identified-1"><span class="header-section-number">1.3.1</span> Problem identified</h3>
+<p>The first Cauchy histograms appeared almost flat and were difficult to interpret. The Cauchy distribution produced extremely large outliers, which caused the central observations to be compressed visually.</p>
+</section>
+<section id="re-prompt-1" class="level3" data-number="1.3.2">
+<h3 data-number="1.3.2" class="anchored" data-anchor-id="re-prompt-1"><span class="header-section-number">1.3.2</span> Re-prompt</h3>
+<p>I asked AI why the histogram was not displaying a useful shape and whether the plot needed to be changed.</p>
+</section>
+<section id="improved-approach" class="level3" data-number="1.3.3">
+<h3 data-number="1.3.3" class="anchored" data-anchor-id="improved-approach"><span class="header-section-number">1.3.3</span> Improved approach</h3>
+<p>The histogram was revised to display the central 98% of the simulated means while keeping all observations in the numerical calculations.</p>
+</section>
+<section id="validation-1" class="level3" data-number="1.3.4">
+<h3 data-number="1.3.4" class="anchored" data-anchor-id="validation-1"><span class="header-section-number">1.3.4</span> Validation</h3>
+<p>The revised plots showed a sharp concentration near 0 and heavy tails. The Q–Q plots showed major departures from the normal reference line. The numerical results also showed unstable means and extremely large standard deviations.</p>
+<p>For example, the simulated means changed substantially across sample sizes, while the medians remained close to 0. This confirmed that extreme observations were affecting the means.</p>
+</section>
+<section id="final-conclusion" class="level3" data-number="1.3.5">
+<h3 data-number="1.3.5" class="anchored" data-anchor-id="final-conclusion"><span class="header-section-number">1.3.5</span> Final conclusion</h3>
+<p>No reasonable sample size investigated produced a stable approximately normal sampling distribution for the Cauchy population.</p>
+</section>
+</section>
+<section id="checking-the-extra-credit-models" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="checking-the-extra-credit-models"><span class="header-section-number">1.4</span> 4. Checking the Extra-Credit Models</h2>
+<section id="problem-identified-2" class="level3" data-number="1.4.1">
+<h3 data-number="1.4.1" class="anchored" data-anchor-id="problem-identified-2"><span class="header-section-number">1.4.1</span> Problem identified</h3>
+<p>The extra-credit distributions used custom models that were not standard built-in R distributions. I did not want to assume the model definitions.</p>
+</section>
+<section id="re-prompt-2" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="re-prompt-2"><span class="header-section-number">1.4.2</span> Re-prompt</h3>
+<p>I uploaded the professor’s extra-credit files and asked AI to use the exact model definitions before writing the code.</p>
+</section>
+<section id="validation-2" class="level3" data-number="1.4.3">
+<h3 data-number="1.4.3" class="anchored" data-anchor-id="validation-2"><span class="header-section-number">1.4.3</span> Validation</h3>
+<p>The dependent failure process was implemented using the professor’s model:</p>
+<p><span class="math display">\[\lambda_t=\lambda_0e^{\beta(X_{t-1}-\mu)}\]</span></p>
+<p>The basketball model used independent Bernoulli observations with probabilities decreasing from (0.90) to (0.50).</p>
+<p>The custom age-at-death model used the two components specified by the professor:</p>
+<ul>
+<li>an early-death exponential component;</li>
+<li>an adult component centered near age 65.</li>
+</ul>
+<p>I checked the results by rendering the files and comparing the plots and numerical summaries with the expected characteristics of each model.</p>
+</section>
+</section>
+<section id="final-validation-process" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="final-validation-process"><span class="header-section-number">1.5</span> 7. Final Validation Process</h2>
+<p>For each population, I used the following validation process:</p>
+<ol type="1">
+<li>Rendered the Quarto document in RStudio.</li>
+<li>Checked that the code ran without errors.</li>
+<li>Confirmed that 10,000 sample means were generated for every sample size.</li>
+<li>Examined the histograms across all sample sizes.</li>
+<li>Examined selected normal Q–Q plots.</li>
+<li>Compared simulated means with theoretical means when available.</li>
+<li>Compared simulated standard errors with theoretical standard errors when available.</li>
+<li>Reviewed skewness and excess kurtosis.</li>
+<li>Revised the conclusion when the graphical and numerical evidence did not support the first interpretation.</li>
+</ol>
+</section>
+<section id="reflection" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="reflection"><span class="header-section-number">1.6</span> 8. Reflection</h2>
+<p>The most useful part of using AI was the iterative process. AI helped explain R functions, identify possible coding problems, and suggest ways to organize the analysis. However, I had to inspect the outputs myself and ask follow-up questions when the results were unclear.</p>
+<p>The final conclusions were based on my rendered graphs and numerical results rather than on AI predictions alone.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

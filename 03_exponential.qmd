@@ -1,0 +1,262 @@
+---
+title: "Exponential Distribution"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## 1. Population Description
+
+The third distribution we will evaluate is the Exponential distribution with a rate of 1. It is a continuous distribution with a theoretical mean of 1 and a theoretical standard deviation of 1.
+
+The Exponential distribution is strongly right-skewed and has a long right tail. Unlike the Standard Normal and six-sided die distributions, it is not symmetric. The observations are assumed to be independent and identically distributed. In R, random observations can be generated using the `rexp()` function.
+
+## 2. Prediction Before the Simulation
+
+Before running the simulation, I predict that the sampling distribution of the mean will be right-skewed at small sample sizes because the original Exponential distribution is strongly right-skewed.
+
+I expect the sampling distribution to become more approximately normal as the sample size increases. I also expect the sample means to be centered near the theoretical mean of 1, while their variability decreases as the sample size increases.
+
+The theoretical standard error is:
+
+$$SE(\bar X)=\frac{\sigma}{\sqrt{n}}.$$
+
+For this Exponential distribution, (\sigma=1), so:
+
+$$SE(\bar X)=\frac{1}{\sqrt{n}}.$$
+
+## 3. Simulation Design
+
+### Sample Sizes
+
+Once again I will investigate the sample sizes (n=5), (n=10), (n=20), (n=30), (n=50), and (n=100).
+
+These sample sizes allow me to examine how quickly the sampling distribution changes from right-skewed to approximately normal.
+
+### Number of Simulations
+
+For each sample size, I will generate 10,000 repeated samples. Each repeated sample will produce one sample mean.
+
+The sample size (n) is the number of observations in one sample. The number of simulations, (B), is the number of repeated samples generated for each value of (n).
+
+```{r}
+sample_sizes <- c(5, 10, 20, 30, 50, 100)
+
+B <- 10000
+```
+
+### Reproducibility
+
+I used the last four digits of my student ID as the random seed so that the simulation results can be reproduced.
+
+```{r}
+student_id <- 6424
+
+set.seed(student_id)
+```
+
+## 4. Simulation Function
+
+The following function repeatedly samples from the Exponential population and calculates the mean of each sample.
+
+```{r}
+simulate_exponential_means <- function(n, B = 10000) {
+  
+  replicate(
+    B,
+    mean(rexp(n,rate = 1)))
+}
+```
+
+### Testing the Function
+
+I first tested the function using a sample size of (n=5).
+
+```{r}
+test_sample_means_n5 <- simulate_exponential_means(
+  n = 5,
+  B = B
+)
+
+head(test_sample_means_n5)
+
+length(test_sample_means_n5)
+```
+
+The function should produce 10,000 sample means.
+
+## 5. Simulation Results
+
+### 5.1 Generating Sample Means for Each Sample Size
+
+I used the simulation function to generate 10,000 sample means for each selected sample size.
+
+```{r}
+all_sample_means <- lapply(
+  sample_sizes,
+  function(n) {
+    simulate_exponential_means(
+      n = n,
+      B = B
+    )
+  }
+)
+
+names(all_sample_means) <- paste0("n_", sample_sizes)
+
+sample_means_n5 <- all_sample_means[["n_5"]]
+sample_means_n30 <- all_sample_means[["n_30"]]
+```
+
+Each element of `all_sample_means` contains 10,000 sample means for one sample size.
+
+I checked that every sample size produced 10,000 sample means:
+
+```{r}
+sapply(all_sample_means, length)
+```
+
+### 5.2 Comparison of Histograms Across Sample Sizes
+
+To compare the sampling distributions across all investigated sample sizes, I created six histograms.
+
+```{r}
+exponential_mean <- 1
+exponential_sd <- 1
+
+old_par <- par(mfrow = c(2, 3))
+
+for (n in sample_sizes) {
+  
+  x <- all_sample_means[[paste0("n_", n)]]
+  
+  hist(
+    x,
+    breaks = 30,
+    probability = TRUE,
+    main = paste("Sampling Distribution, n =", n),
+    xlab = "Sample means",
+    col = "lightblue",
+    border = "white"
+  )
+  
+  curve(
+    dnorm(
+      x,
+      mean = exponential_mean,
+      sd = exponential_sd / sqrt(n)
+    ),
+    add = TRUE,
+    col = "darkblue",
+    lwd = 2
+  )
+  
+  abline(
+    v = exponential_mean,
+    col = "red",
+    lwd = 2
+  )
+}
+
+par(old_par)
+```
+
+The blue curve represents the theoretical normal distribution expected for the sample means. The red line marks the theoretical mean of 1.
+
+### 5.3 Normal Q–Q Plots
+
+I created Q–Q plots for (n=5) and (n=30) to compare a small sample size with a larger sample size.
+
+```{r}
+old_par <- par(mfrow = c(1, 2))
+
+qqnorm(
+  sample_means_n5,
+  main = "Normal Q-Q Plot for n = 5"
+)
+
+qqline(
+  sample_means_n5,
+  col = "red",
+  lwd = 2
+)
+
+qqnorm(
+  sample_means_n30,
+  main = "Normal Q-Q Plot for n = 30"
+)
+
+qqline(
+  sample_means_n30,
+  col = "red",
+  lwd = 2
+)
+
+par(old_par)
+```
+
+Points that follow the red line closely provide evidence that the sampling distribution is approximately normal.
+
+### 5.4 Numerical Summary Across All Sample Sizes
+
+The following table compares the simulated results with the theoretical values.
+
+```{r}
+summary_table <- do.call(
+  rbind,
+  lapply(sample_sizes, function(n) {
+    
+    x <- all_sample_means[[paste0("n_", n)]]
+    
+    data.frame(
+      sample_size = n,
+      theoretical_mean = exponential_mean,
+      simulated_mean = mean(x),
+      simulated_standard_error = sd(x),
+      theoretical_standard_error = exponential_sd / sqrt(n),
+      skewness = mean(
+        (x - mean(x))^3
+      ) / sd(x)^3,
+      excess_kurtosis = mean(
+        (x - mean(x))^4
+      ) / sd(x)^4 - 3
+    )
+  })
+)
+
+summary_table
+```
+
+The table allows me to compare:
+
+- The theoretical mean with the simulated mean
+- The simulated standard error with the theoretical standard error
+- Skewness across sample sizes
+- Excess kurtosis across sample sizes
+
+## 6. When Did the Sampling Distribution Become Approximately Normal?
+
+The sampling distribution was approximately normal at (n=30).
+
+At (n=5), the histogram and Q–Q plot showed clear right-skewness. By (n=30), the histogram was roughly bell-shaped, and most Q–Q plot points followed the reference line. The simulated mean was (1.0015), close to the theoretical mean of 1, and the simulated standard error was (0.1842), close to the theoretical value of (0.1826).
+
+Therefore:
+
+$$\boxed{n=30}$$
+
+## 7. Why Did I Choose That Value?
+
+I chose (n=30) because it was the first sample size that appeared approximately normal. The histogram was roughly bell-shaped, and the Q–Q plot was mostly linear. The simulated mean was (1.0015), close to the theoretical mean of 1. The simulated standard error was (0.1842), close to the theoretical value of (0.1826). Skewness and excess kurtosis were also lower than at (n=5).
+
+## 8. What Surprised Me?
+
+I was surprised that the exponential distribution still showed some right-skewness at (n=30). This occurred because the original population has a long right tail. However, the sampling distribution was much more normal than it was at (n=5).
+
+## 9. Conclusion
+
+For the exponential population, the sampling distribution of the mean became approximately normal at (n=30). As the sample size increased, the distribution became more symmetric, the standard error decreased, and the skewness and kurtosis moved closer to 0. This demonstrates how the Central Limit Theorem helps sample means become approximately normal even when the original population is strongly right-skewed.

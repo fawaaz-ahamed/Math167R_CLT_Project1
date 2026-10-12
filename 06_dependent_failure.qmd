@@ -1,0 +1,306 @@
+---
+title: "Extra Credit: Dependent Machine Failure Process"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## 1. Population Description
+
+This simulation models the operating time between failures of a machine. The observations are dependent because the previous operating time affects the failure rate for the next operating time.
+
+The baseline failure rate is (\lambda\_0=1). The dependent failure rate is:
+
+$$\lambda_t=\lambda_0e^{\beta(X_{t-1}-\mu)}$$
+
+The parameters are:
+
+- (\lambda\_0=1): baseline failure rate
+- (\beta=1.25): strength of dependence
+- (\mu=1): reference operating time
+
+If the previous operating time is long, the next failure rate becomes higher, so the next operating time tends to be shorter. If the previous operating time is short, the next failure rate becomes lower, so the next operating time tends to be longer.
+
+This creates negative dependence between consecutive observations. The observations are not independent, although each observation is conditionally exponential.
+
+## 2. Prediction Before the Simulation
+
+Before running the simulation, I predict that the sampling distribution of the mean will become approximately normal as the sample size increases.
+
+However, because the observations are dependent, I expect the convergence to normality to differ from the independent exponential distribution. The dependence may reduce the amount of variation in the sample means because long and short operating times tend to compensate for each other.
+
+## 3. Simulation Design
+
+### Sample Sizes
+
+I will investigate the sample sizes (n=5), (n=10), (n=20), (n=30), (n=50), and (n=100).
+
+### Number of Simulations
+
+For each sample size, I will generate 10,000 dependent samples. Each sample will produce one sample mean.
+
+```{r}
+sample_sizes <- c(5, 10, 20, 30, 50, 100)
+
+B <- 10000
+```
+
+### Reproducibility
+
+I used the last four digits of my student ID as the random seed.
+
+```{r}
+student_id <- 6424
+
+set.seed(student_id)
+```
+
+## 4. Simulation Function
+
+The following function generates one dependent sequence of operating times.
+
+```{r}
+simulate_dependent_process <- function(
+  n,
+  baseline_rate = 1,
+  beta = 1.25,
+  reference_time = 1
+) {
+  
+  failure_time <- numeric(n)
+  
+  failure_rate <- numeric(n)
+  
+  failure_rate[1] <- baseline_rate
+  
+  failure_time[1] <- rexp(
+    1,
+    rate = failure_rate[1]
+  )
+  
+  if (n >= 2) {
+    for (t in 2:n) {
+      
+      failure_rate[t] <- baseline_rate *
+        exp(
+          beta *
+            (failure_time[t - 1] - reference_time)
+        )
+      
+      failure_time[t] <- rexp(
+        1,
+        rate = failure_rate[t]
+      )
+    }
+  }
+  
+  failure_time
+}
+```
+
+The next function repeats the dependent sampling process and stores one mean from each sample.
+
+```{r}
+simulate_dependent_means <- function(n, B = 10000) {
+  
+  replicate(
+    B,
+    mean(
+      simulate_dependent_process(n)
+    )
+  )
+}
+```
+
+I first tested the function using (n=5).
+
+```{r}
+test_sample_means_n5 <- simulate_dependent_means(
+  n = 5,
+  B = B
+)
+
+head(test_sample_means_n5)
+
+length(test_sample_means_n5)
+```
+
+## 5. Simulation Results
+
+### 5.1 Generating Sample Means for Each Sample Size
+
+```{r}
+all_sample_means <- lapply(
+  sample_sizes,
+  function(n) {
+    simulate_dependent_means(
+      n = n,
+      B = B
+    )
+  }
+)
+
+names(all_sample_means) <- paste0("n_", sample_sizes)
+
+sample_means_n5 <- all_sample_means[["n_5"]]
+
+sample_means_n30 <- all_sample_means[["n_30"]]
+
+sapply(all_sample_means, length)
+```
+
+Each sample size should produce 10,000 sample means.
+
+### 5.2 Examining Dependence
+
+```{r}
+dependent_process <- simulate_dependent_process(
+  n = 1000
+)
+
+lag_one_correlation <- cor(
+  dependent_process[-length(dependent_process)],
+  dependent_process[-1]
+)
+
+lag_one_correlation
+```
+
+A negative lag-one correlation provides evidence that consecutive observations tend to move in opposite directions.
+
+### 5.3 Comparison of Histograms Across Sample Sizes
+
+Because there is no simple theoretical standard error for this dependent process, the blue curve uses the simulated mean and standard deviation for each sample size as a normal reference.
+
+```{r}
+old_par <- par(mfrow = c(2, 3))
+
+for (n in sample_sizes) {
+  
+  x <- all_sample_means[[paste0("n_", n)]]
+  
+  hist(
+    x,
+    breaks = 30,
+    probability = TRUE,
+    main = paste("Sampling Distribution, n =", n),
+    xlab = "Sample means",
+    col = "lightblue",
+    border = "white"
+  )
+  
+  curve(
+    dnorm(
+      x,
+      mean = mean(x),
+      sd = sd(x)
+    ),
+    add = TRUE,
+    col = "darkblue",
+    lwd = 2
+  )
+  
+  abline(
+    v = mean(x),
+    col = "red",
+    lwd = 2
+  )
+}
+
+par(old_par)
+```
+
+The blue curve is a simulated normal reference. The red line marks the simulated mean.
+
+### 5.4 Normal Q–Q Plots
+
+```{r}
+old_par <- par(mfrow = c(1, 2))
+
+qqnorm(
+  sample_means_n5,
+  main = "Normal Q-Q Plot for n = 5"
+)
+
+qqline(
+  sample_means_n5,
+  col = "red",
+  lwd = 2
+)
+
+qqnorm(
+  sample_means_n30,
+  main = "Normal Q-Q Plot for n = 30"
+)
+
+qqline(
+  sample_means_n30,
+  col = "red",
+  lwd = 2
+)
+
+par(old_par)
+```
+
+Points that follow the reference line provide evidence that the sampling distribution is approximately normal.
+
+### 5.5 Numerical Summary Across All Sample Sizes
+
+There is no simple theoretical standard error because the observations are dependent. Therefore, this table reports simulated numerical evidence.
+
+```{r}
+summary_table <- do.call(
+  rbind,
+  lapply(
+    sample_sizes,
+    function(n) {
+      
+      x <- all_sample_means[[paste0("n_", n)]]
+      
+      data.frame(
+        sample_size = n,
+        simulated_mean = mean(x),
+        simulated_standard_error = sd(x),
+        simulated_median = median(x),
+        skewness = mean(
+          (x - mean(x))^3
+        ) / sd(x)^3,
+        excess_kurtosis = mean(
+          (x - mean(x))^4
+        ) / sd(x)^4 - 3
+      )
+    }
+  )
+)
+
+summary_table
+```
+
+## 6. When Did the Sampling Distribution Become Approximately Normal?
+
+The sampling distribution did not become reliably approximately normal for any of the sample sizes investigated.
+
+The histograms remained right-skewed, and the Q–Q plot for (n=30) showed clear curvature away from the reference line. Although skewness decreased from (1.80) at (n=5) to (0.39) at (n=100), it was still not close to 0.
+
+Therefore:
+
+$$\boxed{\text{No reasonable value of } n \text{ was found}}$$
+
+## 7. Why Did I Choose That Value?
+
+No sample size was selected because the sampling distribution remained right-skewed through (n=100). The Q–Q plot did not follow a straight-line pattern, and the skewness remained positive.
+
+The dependent observations changed the behavior of the sample means, so increasing the sample size did not produce normality as quickly as it did for the independent distributions.
+
+## 8. What Surprised Me?
+
+I was surprised that the sampling distribution remained right-skewed even at (n=100). The skewness decreased as the sample size increased, but the distribution still did not closely follow a normal shape.
+
+## 9. Conclusion
+
+The dependent failure process did not produce an approximately normal sampling distribution for the sample sizes investigated. Dependence between observations can change the behavior of sample means and slow their convergence to normality. This shows that the usual Central Limit Theorem assumptions are important.

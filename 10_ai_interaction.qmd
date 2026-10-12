@@ -1,0 +1,124 @@
+---
+title: "AI Interaction and Validation"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+# AI Interaction and Validation
+
+I used AI as a programming and statistical reasoning assistant. I did not accept the generated code or conclusions without checking them in RStudio. I rendered the Quarto files, examined the graphs, and reviewed the numerical output.
+
+## 1. Improving the Project Structure
+
+### Initial prompt
+
+I asked AI to help me understand the project requirements and organize the Quarto document.
+
+### Problem identified
+
+The first response provided too much of the project at once. This made it difficult for me to understand the individual steps and analyze the results myself.
+
+### Improved prompt
+
+I asked AI to slow down and work section by section. I specifically requested that it explain the purpose of each section and provide only the code needed for the current step.
+
+### Result
+
+The project was reorganized into repeated sections for each population:
+
+1.  Population description
+2.  Prediction before the simulation
+3.  Simulation design
+4.  Simulation function
+5.  Simulation results
+6.  Selection of (n)
+7.  Evidence for the selection
+8.  Surprising result
+9.  Conclusion
+
+This structure made it easier to compare the populations consistently.
+
+## 2. Correcting Quarto Code Formatting
+
+### Initial problem
+
+Some code was displayed incorrectly after copying it into the document. The R code chunks did not render properly because the Quarto code fences were not formatted correctly.
+
+### Re-prompt
+
+I asked AI to provide code in a copy-and-paste format with properly formatted Quarto R chunks. Each chunk needed an opening `{r}` label, R code inside the chunk, and a closing code fence.
+
+### Validation
+
+I pasted the revised code into RStudio and rendered the document. The code chunks and their outputs displayed correctly after the formatting was corrected.
+
+## 3. Correcting the Cauchy Histogram
+
+### Problem identified
+
+The first Cauchy histograms appeared almost flat and were difficult to interpret. The Cauchy distribution produced extremely large outliers, which caused the central observations to be compressed visually.
+
+### Re-prompt
+
+I asked AI why the histogram was not displaying a useful shape and whether the plot needed to be changed.
+
+### Improved approach
+
+The histogram was revised to display the central 98% of the simulated means while keeping all observations in the numerical calculations.
+
+### Validation
+
+The revised plots showed a sharp concentration near 0 and heavy tails. The Q–Q plots showed major departures from the normal reference line. The numerical results also showed unstable means and extremely large standard deviations.
+
+For example, the simulated means changed substantially across sample sizes, while the medians remained close to 0. This confirmed that extreme observations were affecting the means.
+
+### Final conclusion
+
+No reasonable sample size investigated produced a stable approximately normal sampling distribution for the Cauchy population.
+
+## 4. Checking the Extra-Credit Models
+
+### Problem identified
+
+The extra-credit distributions used custom models that were not standard built-in R distributions. I did not want to assume the model definitions.
+
+### Re-prompt
+
+I uploaded the professor’s extra-credit files and asked AI to use the exact model definitions before writing the code.
+
+### Validation
+
+The dependent failure process was implemented using the professor’s model:
+
+$$\lambda_t=\lambda_0e^{\beta(X_{t-1}-\mu)}$$
+
+The basketball model used independent Bernoulli observations with probabilities decreasing from (0.90) to (0.50).
+
+The custom age-at-death model used the two components specified by the professor:
+
+- an early-death exponential component;
+- an adult component centered near age 65.
+
+I checked the results by rendering the files and comparing the plots and numerical summaries with the expected characteristics of each model.
+
+## 7. Final Validation Process
+
+For each population, I used the following validation process:
+
+1.  Rendered the Quarto document in RStudio.
+2.  Checked that the code ran without errors.
+3.  Confirmed that 10,000 sample means were generated for every sample size.
+4.  Examined the histograms across all sample sizes.
+5.  Examined selected normal Q–Q plots.
+6.  Compared simulated means with theoretical means when available.
+7.  Compared simulated standard errors with theoretical standard errors when available.
+8.  Reviewed skewness and excess kurtosis.
+9.  Revised the conclusion when the graphical and numerical evidence did not support the first interpretation.
+
+## 8. Reflection
+
+The most useful part of using AI was the iterative process. AI helped explain R functions, identify possible coding problems, and suggest ways to organize the analysis. However, I had to inspect the outputs myself and ask follow-up questions when the results were unclear.
+
+The final conclusions were based on my rendered graphs and numerical results rather than on AI predictions alone.

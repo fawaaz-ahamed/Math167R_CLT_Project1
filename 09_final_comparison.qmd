@@ -1,0 +1,38 @@
+---
+title: "Final Comparison Across Populations"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+# Final Comparison Across Populations
+
+## Summary of Results
+
+The table below compares when the sampling distribution of the mean appeared approximately normal.
+
+| Population | Main characteristic | Smallest approximately normal (n) |
+|----------------------|----------------------|----------------------------:|
+| Standard normal | Already normal and symmetric | 5 |
+| Six-sided die | Discrete and symmetric | 5 |
+| Exponential | Right-skewed with a long tail | 30 |
+| Small binomial | Discrete and right-skewed | 30 |
+| Cauchy | Extremely heavy-tailed; no defined mean or standard deviation | No reasonable (n) |
+| Dependent failure process | Observations are dependent | No reasonable (n) investigated |
+| Non-identical basketball shots | Independent but different probabilities | 30 |
+| Custom age-at-death distribution | Discrete with two population features | 30 |
+
+## Overall Comparison
+
+The standard normal and six-sided die populations became approximately normal at small sample sizes because they are symmetric. The exponential and small binomial populations required larger sample sizes because they were right-skewed.
+
+The Cauchy distribution did not show normal sampling behavior because it has extremely heavy tails and no defined theoretical mean or standard deviation. The dependent failure process also did not become reliably normal within the investigated sample sizes because the observations were not independent.
+
+The basketball and custom age-at-death simulations showed that approximate normality can still occur when observations are not identical or when the population has an unusual shape, as long as the sample size is sufficiently large.
+
+## Main Conclusion
+
+The simulations supported the Central Limit Theorem, but they also showed its limitations. The sampling distribution of the mean generally became more normal as (n) increased, but the speed of convergence depended on the population shape and assumptions.
+
+Symmetric populations required smaller samples, skewed populations required larger samples, and the Cauchy and dependent processes did not produce reliable normality within the values investigated.

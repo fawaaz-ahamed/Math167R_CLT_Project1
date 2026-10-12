@@ -1,0 +1,240 @@
+---
+title: "Cauchy Distribution"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Cauchy Distribution
+
+## 1. Population Description
+
+The fifth distribution is the standard Cauchy distribution. It is continuous, symmetric, and centered at 0, but it has extremely heavy tails.
+
+Unlike the previous distributions, the Cauchy distribution does not have a defined theoretical mean or standard deviation. Because extreme values occur frequently, the sample mean can be strongly affected by outliers. The observations are assumed to be independent and identically distributed. In R, the distribution can be generated with `rcauchy()`.
+
+## 2. Prediction Before the Simulation
+
+Before running the simulation, I predict that the sampling distribution of the mean will not become reliably normal as the sample size increases.
+
+The Cauchy distribution has heavy tails and no defined theoretical mean or standard deviation. Therefore, extreme observations may continue to affect the sample means even when the sample size is large.
+
+I expect the sample means to remain highly variable and for the numerical results to be unstable.
+
+## 3. Simulation Design
+
+### Sample Sizes
+
+I will investigate the sample sizes (n=5), (n=10), (n=20), (n=30), (n=50), and (n=100).
+
+These sample sizes allow me to examine whether increasing the sample size produces a stable and approximately normal sampling distribution.
+
+### Number of Simulations
+
+For each sample size, I will generate 10,000 repeated samples. Each repeated sample will produce one sample mean.
+
+The sample size (n) is the number of Cauchy observations in one sample. The number of simulations (B) is the number of repeated samples generated for each value of (n).
+
+```{r}
+sample_sizes <- c(5, 10, 20, 30, 50, 100)
+
+B <- 10000
+```
+
+### Reproducibility
+
+I used the last four digits of my student ID as the random seed.
+
+```{r}
+student_id <- 6424
+
+set.seed(student_id)
+```
+
+## 4. Simulation Function
+
+The following function repeatedly samples from the Cauchy population and calculates the mean of each sample.
+
+```{r}
+simulate_cauchy_means <- function(n, B = 10000) {
+  replicate(
+    B,
+    mean(
+      rcauchy(
+        n,
+        location = 0,
+        scale = 1
+      )
+    )
+  )
+}
+```
+
+I first tested the function using (n=5).
+
+```{r}
+test_sample_means_n5 <- simulate_cauchy_means(
+  n = 5,
+  B = B
+)
+
+head(test_sample_means_n5)
+
+length(test_sample_means_n5)
+```
+
+## 5. Simulation Results
+
+### 5.1 Generating Sample Means for Each Sample Size
+
+```{r}
+all_sample_means <- lapply(
+  sample_sizes,
+  function(n) {
+    simulate_cauchy_means(
+      n = n,
+      B = B
+    )
+  }
+)
+
+names(all_sample_means) <- paste0("n_", sample_sizes)
+
+sample_means_n5 <- all_sample_means[["n_5"]]
+
+sample_means_n30 <- all_sample_means[["n_30"]]
+
+sapply(all_sample_means, length)
+```
+
+Each sample size should produce 10,000 sample means.
+
+### 5.2 Comparison of Histograms Across Sample Sizes
+
+Because the Cauchy distribution has extreme outliers, these histograms display the central 98% of the simulated sample means. The extreme values are still included in the numerical calculations.
+
+```{r}
+old_par <- par(mfrow = c(2, 3))
+
+for (n in sample_sizes) {
+  
+  x <- all_sample_means[[paste0("n_", n)]]
+  
+  lower_limit <- quantile(x, 0.01)
+  upper_limit <- quantile(x, 0.99)
+  
+  x_display <- x[
+    x >= lower_limit &
+    x <= upper_limit
+  ]
+  
+  hist(
+    x_display,
+    breaks = 30,
+    probability = TRUE,
+    main = paste("Sampling Distribution, n =", n),
+    xlab = "Sample means",
+    col = "lightblue",
+    border = "white"
+  )
+  
+  abline(
+    v = 0,
+    col = "red",
+    lwd = 2
+  )
+}
+
+par(old_par)
+```
+
+### 5.3 Normal Q–Q Plots
+
+```{r}
+old_par <- par(mfrow = c(1, 2))
+
+qqnorm(
+  sample_means_n5,
+  main = "Normal Q-Q Plot for n = 5"
+)
+
+qqline(
+  sample_means_n5,
+  col = "red",
+  lwd = 2
+)
+
+qqnorm(
+  sample_means_n30,
+  main = "Normal Q-Q Plot for n = 30"
+)
+
+qqline(
+  sample_means_n30,
+  col = "red",
+  lwd = 2
+)
+
+par(old_par)
+```
+
+Large departures from the reference line indicate that the sampling distribution is not approximately normal.
+
+### 5.4 Numerical Summary Across All Sample Sizes
+
+The Cauchy distribution has no theoretical mean or standard error. Therefore, this table reports the simulated mean, simulated standard deviation, median, and central quantiles instead.
+
+```{r}
+summary_table <- do.call(
+  rbind,
+  lapply(
+    sample_sizes,
+    function(n) {
+      
+      x <- all_sample_means[[paste0("n_", n)]]
+      
+      data.frame(
+        sample_size = n,
+        simulated_mean = mean(x),
+        simulated_standard_deviation = sd(x),
+        simulated_median = median(x),
+        first_quartile = quantile(x, 0.25),
+        third_quartile = quantile(x, 0.75),
+        fifth_percentile = quantile(x, 0.05),
+        ninety_fifth_percentile = quantile(x, 0.95)
+      )
+    }
+  )
+)
+
+summary_table
+```
+
+Because the Cauchy distribution has no theoretical mean or standard deviation, there are no theoretical values for comparison.
+
+## 6. When Did the Sampling Distribution Become Approximately Normal?
+
+The sampling distribution did not become reliably approximately normal for any of the sample sizes investigated.
+
+The Q–Q plots showed extreme departures from the reference line, and the numerical results were unstable. The simulated means and standard deviations changed dramatically because extreme Cauchy observations strongly affected the results.
+
+Therefore:
+
+$$\boxed{\text{No reasonable value of } n \text{ was found}}$$
+
+## 7. Why Did I Choose That Value?
+
+No sample size was selected because increasing (n) did not produce a stable normal sampling distribution. The Cauchy distribution has no defined theoretical mean or standard deviation, so the usual Central Limit Theorem comparison does not apply.
+
+## 8. What Surprised Me?
+
+I was surprised that increasing the sample size did not stabilize the sample means. The medians stayed near 0, but the means and standard deviations became extremely large because of occasional extreme observations.
+
+## 9. Conclusion
+
+The Cauchy distribution did not produce a stable approximately normal sampling distribution for any investigated sample size. Its heavy tails and undefined mean and standard deviation prevent the usual Central Limit Theorem behavior.

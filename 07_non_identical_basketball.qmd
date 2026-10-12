@@ -1,0 +1,309 @@
+---
+title: "Extra Credit: Non-Identical Basketball Shots"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## 1. Population Description
+
+This simulation models a basketball player whose probability of making a shot decreases because of fatigue.
+
+The observations are independent, but they are not identically distributed. The probability changes depending on the shot number. The first shot has probability (0.90) of being made, and the final shot has probability (0.50).
+
+Each shot is a Bernoulli random variable:
+
+$$X_t \sim \text{Bernoulli}(p_t)$$
+
+The probabilities are different across shots, so this is an independent but non-identically distributed process.
+
+## 2. Prediction Before the Simulation
+
+Before running the simulation, I predict that the sampling distribution of the mean will become more approximately normal as the number of shots increases.
+
+Because the probabilities change across observations, I expect the distribution to differ from an ordinary binomial distribution. I expect the sample means to be centered near the average probability of (0.70).
+
+## 3. Simulation Design
+
+### Sample Sizes
+
+I will investigate the sample sizes (n=5), (n=10), (n=20), (n=30), (n=50), and (n=100).
+
+For each sample size, the shot probabilities decrease linearly from (0.90) to (0.50).
+
+### Number of Simulations
+
+For each sample size, I will generate 10,000 repeated samples. Each sample will produce one sample mean.
+
+```{r}
+sample_sizes <- c(5, 10, 20, 30, 50, 100)
+
+B <- 10000
+```
+
+### Reproducibility
+
+I used the last four digits of my student ID as the random seed.
+
+```{r}
+student_id <- 6424
+
+set.seed(student_id)
+```
+
+## 4. Simulation Function
+
+The following function creates a different probability for each shot and calculates the average result.
+
+```{r}
+simulate_basketball_means <- function(n, B = 10000) {
+  
+  p <- seq(
+    from = 0.90,
+    to = 0.50,
+    length.out = n
+  )
+  
+  replicate(
+    B,
+    mean(
+      rbinom(
+        n = n,
+        size = 1,
+        prob = p
+      )
+    )
+  )
+}
+```
+
+I first tested the function using (n=5).
+
+```{r}
+test_sample_means_n5 <- simulate_basketball_means(
+  n = 5,
+  B = B
+)
+
+head(test_sample_means_n5)
+
+length(test_sample_means_n5)
+```
+
+## 5. Simulation Results
+
+### 5.1 Probability Pattern
+
+```{r}
+n_shots <- 20
+
+shot_number <- 1:n_shots
+
+shot_probability <- seq(
+  from = 0.90,
+  to = 0.50,
+  length.out = n_shots
+)
+
+plot(
+  shot_number,
+  shot_probability,
+  type = "o",
+  pch = 16,
+  col = "darkblue",
+  ylim = c(0, 1),
+  xlab = "Shot number",
+  ylab = "Probability of making the shot",
+  main = "Decreasing Probability of Making a Shot"
+)
+```
+
+The probability of making a shot decreases from (0.90) to (0.50).
+
+### 5.2 Generating Sample Means for Each Sample Size
+
+```{r}
+all_sample_means <- lapply(
+  sample_sizes,
+  function(n) {
+    simulate_basketball_means(
+      n = n,
+      B = B
+    )
+  }
+)
+
+names(all_sample_means) <- paste0("n_", sample_sizes)
+
+sample_means_n5 <- all_sample_means[["n_5"]]
+
+sample_means_n30 <- all_sample_means[["n_30"]]
+
+sapply(all_sample_means, length)
+```
+
+Each sample size should produce 10,000 sample means.
+
+### 5.3 Comparison of Histograms Across Sample Sizes
+
+The average probability is (0.70) for every sample size.
+
+The theoretical standard error is calculated using:
+
+$$SE(\bar X)
+=
+\frac{\sqrt{\sum p_i(1-p_i)}}{n}$$
+
+```{r}
+basketball_mean <- 0.70
+
+old_par <- par(mfrow = c(2, 3))
+
+for (n in sample_sizes) {
+  
+  x <- all_sample_means[[paste0("n_", n)]]
+  
+  p <- seq(
+    from = 0.90,
+    to = 0.50,
+    length.out = n
+  )
+  
+  theoretical_se <- sqrt(
+    sum(p * (1 - p))
+  ) / n
+  
+  hist(
+    x,
+    breaks = 30,
+    probability = TRUE,
+    main = paste("Sampling Distribution, n =", n),
+    xlab = "Sample means",
+    col = "lightblue",
+    border = "white"
+  )
+  
+  curve(
+    dnorm(
+      x,
+      mean = basketball_mean,
+      sd = theoretical_se
+    ),
+    add = TRUE,
+    col = "darkblue",
+    lwd = 2
+  )
+  
+  abline(
+    v = basketball_mean,
+    col = "red",
+    lwd = 2
+  )
+}
+
+par(old_par)
+```
+
+The blue curve is the theoretical normal approximation. The red line marks the theoretical mean of (0.70).
+
+### 5.4 Normal Q–Q Plots
+
+```{r}
+old_par <- par(mfrow = c(1, 2))
+
+qqnorm(
+  sample_means_n5,
+  main = "Normal Q-Q Plot for n = 5"
+)
+
+qqline(
+  sample_means_n5,
+  col = "red",
+  lwd = 2
+)
+
+qqnorm(
+  sample_means_n30,
+  main = "Normal Q-Q Plot for n = 30"
+)
+
+qqline(
+  sample_means_n30,
+  col = "red",
+  lwd = 2
+)
+
+par(old_par)
+```
+
+Points that follow the reference line provide evidence that the sampling distribution is approximately normal.
+
+### 5.5 Numerical Summary Across All Sample Sizes
+
+```{r}
+summary_table <- do.call(
+  rbind,
+  lapply(
+    sample_sizes,
+    function(n) {
+      
+      x <- all_sample_means[[paste0("n_", n)]]
+      
+      p <- seq(
+        from = 0.90,
+        to = 0.50,
+        length.out = n
+      )
+      
+      theoretical_se <- sqrt(
+        sum(p * (1 - p))
+      ) / n
+      
+      data.frame(
+        sample_size = n,
+        theoretical_mean = basketball_mean,
+        simulated_mean = mean(x),
+        simulated_standard_error = sd(x),
+        theoretical_standard_error = theoretical_se,
+        skewness = mean(
+          (x - mean(x))^3
+        ) / sd(x)^3,
+        excess_kurtosis = mean(
+          (x - mean(x))^4
+        ) / sd(x)^4 - 3
+      )
+    }
+  )
+)
+
+summary_table
+```
+
+This table compares the theoretical and simulated means, standard errors, skewness, and excess kurtosis.
+
+## 6. When Did the Sampling Distribution Become Approximately Normal?
+
+The sampling distribution became approximately normal at (n=30).
+
+At (n=30), the histogram was roughly bell-shaped, and the Q–Q plot was mostly linear. The simulated mean was (0.6992), close to the theoretical mean of (0.70). The simulated standard error was (0.08075), close to the theoretical value of (0.08078).
+
+Therefore:
+
+$$\boxed{n=30}$$
+
+## 7. Why Did I Choose That Value?
+
+I chose (n=30) because it was the first sample size that provided clear evidence of approximate normality. The histogram was roughly bell-shaped, the Q–Q plot was mostly linear, and the skewness was relatively small at (-0.163).
+
+## 8. What Surprised Me?
+
+I was surprised that the sampling distribution became approximately normal even though the shot probabilities were different. The shots were independent but not identically distributed.
+
+## 9. Conclusion
+
+The sampling distribution became approximately normal at (n=30). The sample means stayed near (0.70), the simulated standard errors closely matched the theoretical values, and skewness and excess kurtosis moved closer to 0 as the sample size increased. This shows that normal approximations can still work when independent observations have different probabilities.

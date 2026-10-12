@@ -1,0 +1,304 @@
+---
+title: "Six-Sided Die Distribution"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## 1. Population Description
+
+The second distribution we will evaluate is a six-sided die. Each observation can take one of the values (1,2,3,4,5,) or (6), and all six outcomes are equally likely. This is a discrete uniform distribution.
+
+The theoretical mean is (3.5), and the theoretical standard deviation is approximately (1.708). The distribution is symmetric, but it is discrete rather than continuous. It is not strongly skewed or heavy-tailed. The observations are assumed to be independent and identically distributed because each die roll is generated independently from the same probability distribution.
+
+In R, random die rolls can be generated using the `sample()` function.
+
+## 2. Prediction Before the Simulation
+
+Before running the simulation, I predict that the sampling distribution of the mean will become approximately normal as the sample size increases.
+
+Because the six-sided die distribution is symmetric, I expect the sample means to be centered near the theoretical mean of 3.5. However, because the original distribution is discrete, I expect the sampling distribution to look less smooth at small sample sizes than the Standard Normal distribution.
+
+I expect the standard error to decrease as the sample size increases, according to:
+
+$$SE(\bar X)=\frac{\sigma}{\sqrt{n}}.$$
+
+## 3. Simulation Design
+
+### Sample Sizes
+
+Once again I will investigate the sample sizes (n=5), (n=10), (n=20), (n=30), (n=50), and (n=100).
+
+These sample sizes will allow me to examine how the sampling distribution changes as the sample size increases.
+
+### Number of Simulations
+
+For each sample size, I will generate 10,000 repeated samples. Each repeated sample will produce one sample mean.
+
+The sample size (n) is the number of die rolls in one sample. The number of simulations, (B), is the number of repeated samples generated for each value of (n).
+
+```{r}
+sample_sizes <- c(5, 10, 20, 30, 50, 100)
+
+B <- 10000
+```
+
+### Reproducibility
+
+I used the last four digits of my student ID as the random seed so that the simulation results can be reproduced.
+
+```{r}
+student_id <- 6424
+
+set.seed(student_id)
+```
+
+## 4. Simulation Function
+
+The following function repeatedly rolls a fair six-sided die, calculates the mean of each sample, and stores the resulting sample means.
+
+```{r}
+simulate_die_means <- function(n, B = 10000) {
+  
+  replicate(
+    B,
+    mean(
+      sample(
+        1:6,
+        size = n,
+        replace = TRUE
+      )
+    )
+  )
+}
+```
+
+The argument `replace = TRUE` allows the same die value to appear more than once, just as it can during repeated rolls of a real die.
+
+### Testing the Function
+
+I first tested the function using a sample size of (n=5).
+
+```{r}
+test_sample_means_n5 <- simulate_die_means(
+  n = 5,
+  B = B
+)
+
+head(test_sample_means_n5)
+
+length(test_sample_means_n5)
+```
+
+The function should produce 10,000 sample means.
+
+## 5. Simulation Results
+
+### 5.1 Generating Sample Means for Each Sample Size
+
+I used the simulation function to generate 10,000 sample means for each selected sample size.
+
+```{r}
+all_sample_means <- lapply(
+  sample_sizes,
+  function(n) {
+    simulate_die_means(
+      n = n,
+      B = B
+    )
+  }
+)
+
+names(all_sample_means) <- paste0("n_", sample_sizes)
+
+sample_means_n5 <- all_sample_means[["n_5"]]
+```
+
+Each element of `all_sample_means` contains 10,000 sample means for one sample size.
+
+I checked that every sample size produced 10,000 sample means:
+
+```{r}
+sapply(all_sample_means, length)
+```
+
+### 5.2 Comparison of Histograms Across Sample Sizes
+
+To compare the sampling distributions across all investigated sample sizes, I created six histograms. Each histogram shows the sampling distribution of the mean for a different sample size.
+
+```{r}
+die_mean <- 3.5
+die_sd <- sqrt(35 / 12)
+
+old_par <- par(mfrow = c(2, 3))
+
+for (n in sample_sizes) {
+  
+  x <- all_sample_means[[paste0("n_", n)]]
+  
+  hist(
+    x,
+    breaks = 30,
+    probability = TRUE,
+    main = paste("Sampling Distribution, n =", n),
+    xlab = "Sample means",
+    col = "lightblue",
+    border = "white"
+  )
+  
+  curve(
+    dnorm(
+      x,
+      mean = die_mean,
+      sd = die_sd / sqrt(n)
+    ),
+    add = TRUE,
+    col = "darkblue",
+    lwd = 2
+  )
+  
+  abline(
+    v = die_mean,
+    col = "red",
+    lwd = 2
+  )
+}
+
+par(old_par)
+```
+
+The blue curve represents the theoretical normal distribution expected for the sample means. The red line marks the theoretical mean of 3.5.
+
+### 5.3 Normal Q-Q Plot for n = 5
+
+A normal Q-Q plot provides another way to evaluate whether the sampling distribution is approximately normal.
+
+```{r}
+qqnorm(
+  sample_means_n5,
+  main = "Normal Q-Q Plot for n = 5"
+)
+
+qqline(
+  sample_means_n5,
+  col = "red",
+  lwd = 2
+)
+```
+
+Points that follow the red line closely provide evidence that the sampling distribution is approximately normal.
+
+### 5.4 Numerical Evidence for n = 5
+
+The following calculations compare the simulated results with the theoretical values for the six-sided die.
+
+```{r}
+simulated_mean_n5 <- mean(sample_means_n5)
+
+simulated_se_n5 <- sd(sample_means_n5)
+
+theoretical_mean_n5 <- die_mean
+
+theoretical_se_n5 <- die_sd / sqrt(5)
+
+numerical_evidence_n5 <- data.frame(
+  sample_size = 5,
+  theoretical_mean = theoretical_mean_n5,
+  simulated_mean = simulated_mean_n5,
+  simulated_standard_error = simulated_se_n5,
+  theoretical_standard_error = theoretical_se_n5
+)
+
+numerical_evidence_n5
+```
+
+For the six-sided die:
+
+- The theoretical mean is 3.5.
+- The theoretical standard deviation is approximately 1.708.
+- The theoretical standard error for (n=5) is approximately 0.764.
+
+The simulated values should be reasonably close to these theoretical values.
+
+### 5.5 Skewness and Kurtosis for n = 5
+
+I calculated skewness and excess kurtosis to provide additional numerical evidence about whether the sampling distribution is approximately normal.
+
+```{r}
+skewness_n5 <- mean(
+  (sample_means_n5 - mean(sample_means_n5))^3
+) / sd(sample_means_n5)^3
+
+excess_kurtosis_n5 <- mean(
+  (sample_means_n5 - mean(sample_means_n5))^4
+) / sd(sample_means_n5)^4 - 3
+
+data.frame(
+  sample_size = 5,
+  skewness = skewness_n5,
+  excess_kurtosis = excess_kurtosis_n5
+)
+```
+
+For an approximately normal distribution, skewness and excess kurtosis should both be close to 0.
+
+### 5.6 Numerical Summary Across All Sample Sizes
+
+The following table summarizes the simulation results for every sample size investigated.
+
+```{r}
+summary_table <- do.call(
+  rbind,
+  lapply(sample_sizes, function(n) {
+    
+    x <- all_sample_means[[paste0("n_", n)]]
+    
+    data.frame(
+      sample_size = n,
+      theoretical_mean = die_mean,
+      simulated_mean = mean(x),
+      simulated_standard_error = sd(x),
+      theoretical_standard_error = die_sd / sqrt(n),
+      skewness = mean(
+        (x - mean(x))^3
+      ) / sd(x)^3,
+      excess_kurtosis = mean(
+        (x - mean(x))^4
+      ) / sd(x)^4 - 3
+    )
+  })
+)
+
+summary_table
+```
+
+This table compares the theoretical and simulated means, standard errors, skewness, and excess kurtosis across all sample sizes.
+
+Render the document and check that it shows six rows, one for each sample size.
+
+## 6. When Did the Sampling Distribution Become Approximately Normal?
+
+Based on the histogram comparison, the normal Q–Q plot for (n=5), and the numerical summary table, the sampling distribution of the mean was approximately normal at the smallest sample size investigated.
+
+The histogram for (n=5) was roughly symmetric and bell-shaped around the theoretical mean of 3.5. The Q–Q plot followed the reference line reasonably well, with small deviations caused by the discrete and bounded nature of the die distribution. The simulated mean was 3.4931, close to the theoretical mean of 3.5. The simulated standard error was 0.7698, compared with the theoretical value of 0.7638.
+
+Therefore, (n=5) was the smallest sample size investigated at which the sampling distribution appeared approximately normal.
+
+## 7. Why Did I Choose That Value?
+
+I chose (n=5) because it was the smallest sample size investigated and already showed approximate normality.
+
+The histogram was roughly symmetric and bell-shaped, and the Q–Q plot followed the reference line. The simulated mean was 3.4931, close to the theoretical mean of 3.5. The simulated standard error was 0.7698, close to the theoretical value of 0.7638. Skewness was close to 0, while the slightly negative excess kurtosis reflected the discrete and bounded nature of the die distribution.
+
+## 8. What Surprised Me?
+
+I was surprised that the sampling distribution became approximately normal at (n=5), even though the original die distribution was discrete. The close agreement between the simulated and theoretical standard errors for all tested sample sizes were also notable.
+
+## 9. Conclusion
+
+For the six-sided die distribution, the sampling distribution of the mean appeared approximately normal at (n=5), the smallest sample size investigated. The histograms, Q–Q plot, and numerical evidence supported this conclusion. This shows that the CLT can work relatively quickly for a symmetric, bounded, discrete population.
